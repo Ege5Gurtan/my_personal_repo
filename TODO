@@ -1,0 +1,2 @@
+Adjust the dataloader in assignment2 simplified so that you can feed your own images
+Try to change the input-output of the gan (instead of image, generate csv)
