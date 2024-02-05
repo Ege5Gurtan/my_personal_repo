@@ -1,0 +1,26 @@
+
+.side-panel {
+    width: 250px;
+    height: 100%;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    right: -250px; /* Initially hidden */
+    background-color: #f1f1f1;
+    overflow-x: hidden;
+    padding: 20px;
+    transition: 0.5s;
+}
+
+.side-panel form {
+    display: flex;
+    flex-direction: column;
+}
+
+button {
+    margin-bottom: 20px;
+}
+
+body {
+    background-color: powderblue;
+  }
