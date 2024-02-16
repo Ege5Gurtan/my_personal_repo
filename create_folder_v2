@@ -1,0 +1,42 @@
+import os
+import xml.etree.ElementTree as ET
+
+def create_folders_from_xml(xml_file_path, output_folder):
+    # Parse the XML file
+    tree = ET.parse(xml_file_path)
+    root = tree.getroot()
+
+    def create_folder_structure(elem, current_path, siblings={}):
+        # Get the 'name' attribute, or use a default if not present
+        folder_name = elem.get('name') or "Unnamed"
+        # Sanitize the folder name
+        folder_name = folder_name.replace("/", "_").replace("\\", "_").replace(":", "_")
+
+        # Ensure unique folder names for siblings with the same name
+        count = siblings.get(folder_name, 0)
+        siblings[folder_name] = count + 1
+        if count > 0:
+            folder_name = f"{folder_name}_{count}"
+
+        # Construct the full path for this folder
+        full_path = os.path.join(current_path, folder_name)
+
+        # Attempt to create the folder, if it doesn't already exist
+        try:
+            os.makedirs(full_path, exist_ok=True)
+            print(f"Created folder: {full_path}")  # Logging for debugging
+        except Exception as e:
+            print(f"Failed to create folder {full_path}: {e}")
+
+        # Recursively process each child element, with a new siblings dict for each level
+        for child in elem:
+            create_folder_structure(child, full_path, {})
+
+    # Start the folder creation process from the root element
+    create_folder_structure(root, output_folder)
+
+# Example usage
+xml_file_path = 'layout_export.xml'  # Adjust with the actual XML file path
+output_folder = '/path/to/output/folder'  # Adjust with your desired output folder path
+
+create_folders_from_xml(xml_file_path, output_folder)
