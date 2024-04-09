@@ -1,19 +1,19 @@
-def add_processid_and_femcalresultid_to_gauge_df(self,input_gauge_df,processes_df,femcalresult_df):
-		femcalresult_df = self.femcalresult_df
-		df_with_femcalid_and_processid = pd.DataFrame()
-    for index,row in processes_df.iterrows():
-    			processid = str(row['processid'])
-    			ID = row['ID']
-    			delta_dose = row['Delta_Dose(%)']
-    			delta_focus = row['#Delta_Focus(nm)']
-    			femcalresultid = femcalresult_df[((femcalresult_df['processid']==processid) & (femcalresult_df['#Delta_Focus(nm)']==delta_focus) & (femcalresult_df['Delta_Dose(%)']==delta_dose))]['femcalresultid']
-    			gauge_rows = input_gauge_df[((input_gauge_df['Delta_Dose(%)']==delta_dose) & (input_gauge_df['#Delta_Focus(nm)']==delta_focus) & (input_gauge_df['ID']==ID))].copy()
-    			gauge_rows['processid'] = processid
-    			if femcalresultid.empty:
-    				gauge_rows['femcalresultid'] = None
-    			else:
-    				gauge_rows['femcalresultid'] = femcalresultid.iloc[0]
-    			
-    			df_with_femcalid_and_processid = pd.concat([df_with_femcalid_and_processid,gauge_rows],axis=0).reset_index(drop=True)
-    		
-    		return df_with_femcalid_and_processid
+def add_ai_cd_values_to_gauge_df(self,input_gauge_df):
+		ai_cd_result_paths_in_gauge_df = input_gauge_df['ai_cd_result_path'].unique()
+		ai_cd_result_paths_in_gauge_df = ai_cd_result_paths_in_gauge_df[~pd.isnull(ai_cd_result_paths_in_gauge_df)] #remove nan values
+		for ai_cd_result_path in ai_cd_result_paths_in_gauge_df:
+				with open(ai_cd_result_path,'r') as file:
+					femcalresultid = self.get_femcalresultid_from_result_txt_path(ai_cd_result_path,'ai_cd_result')
+					gauges_to_assign_ai_cd = input_gauge_df[input_gauge_df['femcalresultid']==femcalresultid]
+					processids_to_assign_ai_cd = gauges_to_assign_ai_cd.drop_duplicates(subset=['Delta_Dose(%)','#Delta_Focus(nm)'])['processid']
+					for line in file:
+						current_line = line.strip()
+						gauge_name = current_line.split(' ')[0]
+						if not(gauges_to_assign_ai_cd[gauges_to_assign_ai_cd['gauge']==gauge_name].empty):
+							current_ai_cd_values = current_line.split(' ')[1:-1]
+							for index,current_ai_cd_value in enumerate(current_ai_cd_values):
+								current_process_id = processids_to_assign_ai_cd.iloc[index]
+								input_gauge_df.loc[((input_gauge_df['ai_cd_result_path']==ai_cd_result_path) & (input_gauge_df['gauge']==gauge_name) & (input_gauge_df['processid']==current_process_id)),'AI_CD'] = current_ai_cd_value
+		return input_gauge_df
+					
+		
