@@ -1,0 +1,19 @@
+def add_processid_and_femcalresultid_to_gauge_df(self,input_gauge_df,processes_df,femcalresult_df):
+		femcalresult_df = self.femcalresult_df
+		df_with_femcalid_and_processid = pd.DataFrame()
+    for index,row in processes_df.iterrows():
+    			processid = str(row['processid'])
+    			ID = row['ID']
+    			delta_dose = row['Delta_Dose(%)']
+    			delta_focus = row['#Delta_Focus(nm)']
+    			femcalresultid = femcalresult_df[((femcalresult_df['processid']==processid) & (femcalresult_df['#Delta_Focus(nm)']==delta_focus) & (femcalresult_df['Delta_Dose(%)']==delta_dose))]['femcalresultid']
+    			gauge_rows = input_gauge_df[((input_gauge_df['Delta_Dose(%)']==delta_dose) & (input_gauge_df['#Delta_Focus(nm)']==delta_focus) & (input_gauge_df['ID']==ID))].copy()
+    			gauge_rows['processid'] = processid
+    			if femcalresultid.empty:
+    				gauge_rows['femcalresultid'] = None
+    			else:
+    				gauge_rows['femcalresultid'] = femcalresultid.iloc[0]
+    			
+    			df_with_femcalid_and_processid = pd.concat([df_with_femcalid_and_processid,gauge_rows],axis=0).reset_index(drop=True)
+    		
+    		return df_with_femcalid_and_processid
